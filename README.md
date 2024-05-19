@@ -1,1 +1,1 @@
-Familly tree app is Dotnet 8 Blazor web app.
+Familly tree app build with Dotnet 8 Blazor as web app can present whole members of your familly. To be continued.
