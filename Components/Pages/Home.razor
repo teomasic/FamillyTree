@@ -1,0 +1,19 @@
+﻿@page "/"
+@rendermode InteractiveServer
+
+<PageTitle>Familly Tree App</PageTitle>
+@{
+    var personList = new List<Person>()
+    {
+        new Person(){ Name = "Tadej", Surname = "Mašić", BirthPlace = "Brežice", Birthdate = new DateTime(1993, 2, 7)}
+    };
+}
+@foreach(var person in personList)
+{
+    
+    <PersonCard Person="@person"></PersonCard>
+
+}
+
+
+<button class="right_corner">Add new person</button>
