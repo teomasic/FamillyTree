@@ -2,18 +2,43 @@
 @rendermode InteractiveServer
 
 <PageTitle>Familly Tree App</PageTitle>
-@{
-    var personList = new List<Person>()
-    {
-        new Person(){ Name = "Tadej", Surname = "Mašić", BirthPlace = "Brežice", Birthdate = new DateTime(1993, 2, 7)}
-    };
-}
-@foreach(var person in personList)
+
+
+@foreach (var person in People)
 {
-    
+
     <PersonCard Person="@person"></PersonCard>
 
 }
 
 
-<button class="right_corner">Add new person</button>
+<button class="btn btn-lg btn-outline-primary bi bi-plus-circle right_corner"
+        @onclick="AddNewPerson"></button>
+
+@code {
+    public List<Person> People { get; set; }
+
+    public Home()
+    {
+        People = new List<Person>()
+        {
+            new Person() { Name = "Tadej", Surname = "Mašić", BirthPlace = "Brežice", Birthdate = new DateTime(1993, 2, 7) }
+        };
+
+    }
+
+    private Task AddNewPerson()
+    {
+        var newPerson = new Person()
+            {
+                Name = "Mateja",
+                Surname = "Jalovec",
+                Birthdate = new DateTime(1998, 6, 1),
+                Id = Guid.NewGuid(),
+                Profession = "Medicine sister"
+            };
+        People.Add(newPerson);
+
+        return Task.CompletedTask;
+    }
+}

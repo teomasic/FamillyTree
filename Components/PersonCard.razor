@@ -1,7 +1,10 @@
 ﻿@rendermode InteractiveServer
 
-<div class="card" id="@Person.Id" style="@CardStyle" @onmousedown="mouseDownOnCard">
-
+<div class="card" id="@Person.Id" style="@CardStyle"
+     @onmousedown="mouseDownOnCard"
+     @onmousemove="mouseMoveOnCard"
+     @onmouseup="mouseUpOnCard"
+     @onmouseout="mouseUpOnCard">
     <div class="card-header">
         <i class="bi bi-person-circle"></i>
     </div>
@@ -19,13 +22,16 @@
     [Parameter]
     public Person Person { get; set; }
 
-    public double CardX { get; set; } = 200;
-    public double CardY { get; set; } = 300;
+    public double CardX { get; set; } = 500;
+    public double LastCardX { get; set; } = 200;
+    public double CardY { get; set; } = 100;
+    public double LastCardY { get; set; } = 300;
     public int CardWidth { get; set; }
     public int CardHeight { get; set; }
     public string CardStyle { get; set; } = "";
 
     private List<string> styleListTemplate { get; set; }
+    private bool canMove { get; set; }
 
 
     protected override Task OnInitializedAsync()
@@ -34,7 +40,7 @@
             "position: abosulute;",
             "font-size: 1rem;",
             "width: 5rem;",
-            $"top:{CardX}px; left:{CardY}px;"
+            $"top:{CardY}px; left:{CardX}px;"
         };
         CardStyle = ListToLongString(styleListTemplate);
         return base.OnInitializedAsync();
@@ -55,14 +61,85 @@
 
     private Task mouseDownOnCard(MouseEventArgs e)
     {
-        Console.WriteLine(e.ClientX);
-        Console.WriteLine(e.ClientY);
-        CardX = e.ClientX;
-        CardY = e.ClientY;
-        styleListTemplate.RemoveAt(styleListTemplate.Count-1);
-        styleListTemplate.Add($"top:{CardX}px; left:{CardY}px;");
-        CardStyle = ListToLongString(styleListTemplate);
-        InvokeAsync(StateHasChanged);
+        canMove = true;
         return Task.CompletedTask;
     }
+
+    private Task mouseMoveOnCard(MouseEventArgs e)
+    {
+        if (canMove)
+        {
+            LastCardX = CardX;
+            LastCardY = CardY;
+
+            CardX += e.MovementX;
+            CardY += e.MovementY;
+
+            printStyles();
+            styleListTemplate.RemoveAt(styleListTemplate.Count - 1);
+            styleListTemplate.Add($"top:{CardY}px; left:{CardX}px;");
+            CardStyle = ListToLongString(styleListTemplate);
+            printStyles();
+            InvokeAsync(StateHasChanged);
+
+        }
+        return Task.CompletedTask;
+    }
+
+    private Task mouseUpOnCard(MouseEventArgs e)
+    {
+
+        canMove = false;
+        return Task.CompletedTask;
+
+    }
+    private Task mouseOutOnCard(MouseEventArgs e)
+    {
+        canMove = false;
+        return Task.CompletedTask;
+    }
+
+
+    private void printStyles()
+    {
+        foreach (var item in CardStyle)
+        {
+            Console.WriteLine(item);
+        }
+    }
+
+    private Task mouseDragStart(DragEventArgs e)
+    {
+        canMove = true;
+        return Task.CompletedTask;
+
+    }
+    private Task mouseDrag(DragEventArgs e)
+    {
+        if (canMove)
+        {
+            LastCardX = CardX;
+            LastCardY = CardY;
+
+            CardX += e.MovementX;
+            CardY += e.MovementY;
+
+            printStyles();
+            styleListTemplate.RemoveAt(styleListTemplate.Count - 1);
+            styleListTemplate.Add($"top:{CardY}px; left:{CardX}px;");
+            CardStyle = ListToLongString(styleListTemplate);
+            printStyles();
+            InvokeAsync(StateHasChanged);
+
+        }
+        return Task.CompletedTask;
+    }
+
+    private Task mouseDragEnd(DragEventArgs e)
+    {
+        canMove = false;
+        return Task.CompletedTask;
+
+    }
+
 }
