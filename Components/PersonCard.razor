@@ -19,6 +19,10 @@
 </div>
 
 @code {
+
+    //todo : add draggable to div and move card on start and at end call InvokeAsync(StateHasChanged);
+
+
     [Parameter]
     public Person Person { get; set; }
 
@@ -56,8 +60,7 @@
         return result;
     }
 
-
-
+    
 
     private Task mouseDownOnCard(MouseEventArgs e)
     {
@@ -108,38 +111,6 @@
         }
     }
 
-    private Task mouseDragStart(DragEventArgs e)
-    {
-        canMove = true;
-        return Task.CompletedTask;
 
-    }
-    private Task mouseDrag(DragEventArgs e)
-    {
-        if (canMove)
-        {
-            LastCardX = CardX;
-            LastCardY = CardY;
-
-            CardX += e.MovementX;
-            CardY += e.MovementY;
-
-            printStyles();
-            styleListTemplate.RemoveAt(styleListTemplate.Count - 1);
-            styleListTemplate.Add($"top:{CardY}px; left:{CardX}px;");
-            CardStyle = ListToLongString(styleListTemplate);
-            printStyles();
-            InvokeAsync(StateHasChanged);
-
-        }
-        return Task.CompletedTask;
-    }
-
-    private Task mouseDragEnd(DragEventArgs e)
-    {
-        canMove = false;
-        return Task.CompletedTask;
-
-    }
 
 }
