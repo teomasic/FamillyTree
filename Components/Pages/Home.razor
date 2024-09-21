@@ -7,9 +7,7 @@
 
 @foreach (var person in People)
 {
-
     <PersonCard Person="@person"></PersonCard>
-
 }
 
 
@@ -20,11 +18,6 @@
 
     public List<Person> People { get; set; }
 
-    // ###########
-
-    private IJSObjectReference? homeJsModule;
-    //private Lazy<Task<IJSObjectReference>> lazy_homeJsModule;
-
     public Home()
     {
         People = new List<Person>()
@@ -34,12 +27,13 @@
 
     }
 
+    private IJSObjectReference? homeJsModule;
+
     protected async override Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             homeJsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Pages/Home.razor.js");
-            //lazy_homeJsModule = new(() => JS.InvokeAsync<IJSObjectReference>("import", "./_content/Common.Razor/js/main.js").AsTask());
         }
 
         await base.OnAfterRenderAsync(firstRender);

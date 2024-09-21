@@ -1,13 +1,13 @@
 ﻿@rendermode InteractiveServer
 @inject IJSRuntime JS
 
-<div class="card" id="@Person.Id" style="@CardStyle" onmousemove="TrackCoordinates">
+<div class="card" id="@Person?.Id" style="@CardStyle" @onmousedown="startMovingPersonCard">
     <div class="card-header">
         <i class="bi bi-person-circle"></i>
     </div>
 
     <div class="card-body">
-        <p class="card-title small">@Person.Name @Person.Surname</p>
+        <p class="card-title small">@Person?.Name @Person?.Surname</p>
         @* <p class="card-text small">@Person.Birthdate.ToString("dd/MM/yyyy")</p> *@
 
     </div>
@@ -16,13 +16,12 @@
 </div>
 
 @code {
-
     //todo : add draggable to div and move card on start and at end call InvokeAsync(StateHasChanged);
     // or move card with JS and just inform dotnet of card coords at end of moving card
 
 
     [Parameter]
-    public Person? Person { get; set; }
+    public Person? Person { get; set; } = new Person();
 
     public double CardX { get; set; } = 500;
     public double LastCardX { get; set; } = 200;
@@ -39,9 +38,9 @@
 
     private List<string> styleListTemplate { get; set; }
     private bool canMove { get; set; }
+    private IJSObjectReference? personCardJsModule;
 
-
-    protected override Task OnInitializedAsync()
+    protected async override Task OnInitializedAsync()
     {
         styleListTemplate = new List<string>(){
             "position: abosulute;",
@@ -50,11 +49,22 @@
             $"top:{CardY}px; left:{CardX}px;"
         };
         CardStyle = ListToLongString(styleListTemplate);
-        return base.OnInitializedAsync();
+
+
+        await base.OnInitializedAsync();
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            personCardJsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/PersonCard.razor.js");
+        }
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     // ################### PRIVATE ###################
-    // ################### 
+    // ###################
 
     private string ListToLongString(List<string> styles)
     {
@@ -72,6 +82,23 @@
         {
             Console.WriteLine(item);
         }
+    }
+
+    private Task startMovingPersonCard(MouseEventArgs e)
+    {
+        canMove = true;
+        personCardJsModule?.InvokeVoidAsync("StartMovingPersonCard", e, Person?.Id);
+        return Task.CompletedTask;
+    }
+
+
+
+
+
+    [JSInvokable]
+    private void SavePesrsonCardAfterMoving()
+    {
+        
     }
 
 }
