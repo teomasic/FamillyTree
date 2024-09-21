@@ -1,10 +1,7 @@
 ﻿@rendermode InteractiveServer
+@inject IJSRuntime JS
 
-<div class="card" id="@Person.Id" style="@CardStyle"
-     @onmousedown="mouseDownOnCard"
-     @onmousemove="mouseMoveOnCard"
-     @onmouseup="mouseUpOnCard"
-     @onmouseout="mouseUpOnCard">
+<div class="card" id="@Person.Id" style="@CardStyle" onmousemove="TrackCoordinates">
     <div class="card-header">
         <i class="bi bi-person-circle"></i>
     </div>
@@ -21,10 +18,11 @@
 @code {
 
     //todo : add draggable to div and move card on start and at end call InvokeAsync(StateHasChanged);
+    // or move card with JS and just inform dotnet of card coords at end of moving card
 
 
     [Parameter]
-    public Person Person { get; set; }
+    public Person? Person { get; set; }
 
     public double CardX { get; set; } = 500;
     public double LastCardX { get; set; } = 200;
@@ -33,6 +31,11 @@
     public int CardWidth { get; set; }
     public int CardHeight { get; set; }
     public string CardStyle { get; set; } = "";
+
+    public PersonCard()
+    {
+        styleListTemplate = new List<string>();
+    }
 
     private List<string> styleListTemplate { get; set; }
     private bool canMove { get; set; }
@@ -50,6 +53,9 @@
         return base.OnInitializedAsync();
     }
 
+    // ################### PRIVATE ###################
+    // ################### 
+
     private string ListToLongString(List<string> styles)
     {
         var result = "";
@@ -60,49 +66,6 @@
         return result;
     }
 
-    
-
-    private Task mouseDownOnCard(MouseEventArgs e)
-    {
-        canMove = true;
-        return Task.CompletedTask;
-    }
-
-    private Task mouseMoveOnCard(MouseEventArgs e)
-    {
-        if (canMove)
-        {
-            LastCardX = CardX;
-            LastCardY = CardY;
-
-            CardX += e.MovementX;
-            CardY += e.MovementY;
-
-            printStyles();
-            styleListTemplate.RemoveAt(styleListTemplate.Count - 1);
-            styleListTemplate.Add($"top:{CardY}px; left:{CardX}px;");
-            CardStyle = ListToLongString(styleListTemplate);
-            printStyles();
-            InvokeAsync(StateHasChanged);
-
-        }
-        return Task.CompletedTask;
-    }
-
-    private Task mouseUpOnCard(MouseEventArgs e)
-    {
-
-        canMove = false;
-        return Task.CompletedTask;
-
-    }
-    private Task mouseOutOnCard(MouseEventArgs e)
-    {
-        canMove = false;
-        return Task.CompletedTask;
-    }
-
-
     private void printStyles()
     {
         foreach (var item in CardStyle)
@@ -110,7 +73,5 @@
             Console.WriteLine(item);
         }
     }
-
-
 
 }

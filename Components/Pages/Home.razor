@@ -1,5 +1,6 @@
 ﻿@page "/"
 @rendermode InteractiveServer
+@inject IJSRuntime JS
 
 <PageTitle>Familly Tree App</PageTitle>
 
@@ -16,7 +17,13 @@
         @onclick="AddNewPerson"></button>
 
 @code {
+
     public List<Person> People { get; set; }
+
+    // ###########
+
+    private IJSObjectReference? homeJsModule;
+    //private Lazy<Task<IJSObjectReference>> lazy_homeJsModule;
 
     public Home()
     {
@@ -25,6 +32,17 @@
             new Person() { Name = "Tadej", Surname = "Mašić", BirthPlace = "Brežice", Birthdate = new DateTime(1993, 2, 7) }
         };
 
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            homeJsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Pages/Home.razor.js");
+            //lazy_homeJsModule = new(() => JS.InvokeAsync<IJSObjectReference>("import", "./_content/Common.Razor/js/main.js").AsTask());
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     private Task AddNewPerson()
