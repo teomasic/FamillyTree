@@ -1,5 +1,7 @@
-﻿@rendermode InteractiveServer
+﻿@using System.Diagnostics
+@rendermode InteractiveServer
 @inject IJSRuntime JS
+@implements IDisposable
 
 <div class="card" id="@Person?.Id" style="@CardStyle" @onmousedown="startMovingPersonCard">
     <div class="card-header">
@@ -16,8 +18,6 @@
 </div>
 
 @code {
-    //todo : add draggable to div and move card on start and at end call InvokeAsync(StateHasChanged);
-    // or move card with JS and just inform dotnet of card coords at end of moving card
 
 
     [Parameter]
@@ -59,8 +59,16 @@
         if (firstRender)
         {
             personCardJsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/PersonCard.razor.js");
+            var dotnetRef = DotNetObjectReference.Create(this);
+            personCardJsModule.InvokeVoidAsync("Init", dotnetRef);
+
         }
         await base.OnAfterRenderAsync(firstRender);
+    }
+
+    public void Dispose()
+    {
+        
     }
 
     // ################### PRIVATE ###################
@@ -96,9 +104,12 @@
 
 
     [JSInvokable]
-    private void SavePesrsonCardAfterMoving()
+    public void SavePesrsonCardAfterMoving(MouseEventArgs args)
     {
-        
+        Trace.WriteLine($"CardX: {args.ClientX} | CardY: {args.ClientY}");
+        Console.WriteLine($"CardX: {args.ClientX} | CardY: {args.ClientY}");
     }
+
+
 
 }
