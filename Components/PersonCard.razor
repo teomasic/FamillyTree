@@ -1,9 +1,11 @@
 ﻿@using System.Diagnostics
 @rendermode InteractiveServer
 @inject IJSRuntime JS
-@implements IDisposable
 
-<div class="card" id="@Person?.Id" style="@CardStyle" @onmousedown="startMovingPersonCard">
+<div class="card" id="@Person?.Id" style="@CardStyle"
+     @onmousedown="startMovingPersonCard"
+     @onmousemove="movePersonCard"
+     @onmouseup="stopMovingPersonCard">
     <div class="card-header">
         <i class="bi bi-person-circle"></i>
     </div>
@@ -13,8 +15,6 @@
         @* <p class="card-text small">@Person.Birthdate.ToString("dd/MM/yyyy")</p> *@
 
     </div>
-
-
 </div>
 
 @code {
@@ -24,9 +24,7 @@
     public Person? Person { get; set; } = new Person();
 
     public double CardX { get; set; } = 500;
-    public double LastCardX { get; set; } = 200;
     public double CardY { get; set; } = 100;
-    public double LastCardY { get; set; } = 300;
     public int CardWidth { get; set; }
     public int CardHeight { get; set; }
     public string CardStyle { get; set; } = "";
@@ -43,7 +41,7 @@
     protected async override Task OnInitializedAsync()
     {
         styleListTemplate = new List<string>(){
-            "position: abosulute;",
+            "position: absolute;",
             "font-size: 1rem;",
             "width: 5rem;",
             $"top:{CardY}px; left:{CardX}px;"
@@ -54,22 +52,6 @@
         await base.OnInitializedAsync();
     }
 
-    protected async override Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            personCardJsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/PersonCard.razor.js");
-            var dotnetRef = DotNetObjectReference.Create(this);
-            personCardJsModule.InvokeVoidAsync("Init", dotnetRef);
-
-        }
-        await base.OnAfterRenderAsync(firstRender);
-    }
-
-    public void Dispose()
-    {
-        
-    }
 
     // ################### PRIVATE ###################
     // ###################
@@ -92,24 +74,26 @@
         }
     }
 
-    private Task startMovingPersonCard(MouseEventArgs e)
+    private void startMovingPersonCard(MouseEventArgs e)
     {
         canMove = true;
-        personCardJsModule?.InvokeVoidAsync("StartMovingPersonCard", e, Person?.Id);
-        return Task.CompletedTask;
     }
 
-
-
-
-
-    [JSInvokable]
-    public void SavePesrsonCardAfterMoving(MouseEventArgs args)
+    private void movePersonCard(MouseEventArgs e)
     {
-        Trace.WriteLine($"CardX: {args.ClientX} | CardY: {args.ClientY}");
-        Console.WriteLine($"CardX: {args.ClientX} | CardY: {args.ClientY}");
+        if(canMove == true)
+        {
+            this.CardX += e.MovementX;
+            this.CardY += e.MovementY;
+            this.styleListTemplate.RemoveAt(styleListTemplate.Count - 1);
+            this.styleListTemplate.Add($"top:{this.CardY}px; left:{this.CardX}px;");
+            CardStyle = ListToLongString(styleListTemplate);
+            InvokeAsync(StateHasChanged);
+        }
     }
 
-
-
+    private void stopMovingPersonCard(MouseEventArgs e)
+    {
+        canMove = false;
+    }
 }
