@@ -1,0 +1,45 @@
+﻿@page "/removePerson"
+
+<h3>RemovePerson</h3>
+ 
+<table class="table table-striped">
+    <thead>
+        <tr>
+            @foreach (var prop in FamillyMembers.GetType().GetProperties())
+            {
+                <th scope="col">@prop.Name</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var person in FamillyMembers)
+        {
+            <tr>
+                <th scope="row">@Counter</th>
+                <th>@person.Name</th>
+                <th>@person.Surname</th>
+            </tr>
+
+            Counter++;
+        }
+    </tbody>
+</table>
+
+@code {
+
+    public RemovePerson(DbServices dbServices)
+    {
+        this.dbServices = dbServices;
+    }
+
+    private readonly DbServices dbServices;
+    private List<Person> FamillyMembers { get; set; }
+    private int Counter { get; set; }             
+
+
+    protected override Task OnInitializedAsync()
+    {
+        dbServices.GetPeople();
+        return base.OnInitializedAsync();
+    }
+}

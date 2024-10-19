@@ -1,6 +1,7 @@
 ﻿@page "/"
 @rendermode InteractiveServer
 @inject IJSRuntime JS
+@inject NavigationManager navigation
 
 <PageTitle>Familly Tree App</PageTitle>
 
@@ -12,22 +13,28 @@
 
 
 <button class="btn btn-lg btn-outline-primary bi bi-plus-circle right_corner"
-        @onclick="AddNewPerson"></button>
+        @onclick="AddNewPerson">
+</button>
 
 @code {
+
+    [Inject]
+    public DbServices dbServices { get; set; }
 
     public List<Person> People { get; set; }
 
     public Home()
     {
-        People = new List<Person>()
-        {
-            new Person() { Name = "Tadej", Surname = "Mašić", BirthPlace = "Brežice", Birthdate = new DateTime(1993, 2, 7) }
-        };
-
+        People = new List<Person>();
     }
 
     private IJSObjectReference? homeJsModule;
+
+    protected async override Task OnInitializedAsync()
+    {
+        await LoadPeople();
+        await base.OnInitializedAsync();
+    }
 
     protected async override Task OnAfterRenderAsync(bool firstRender)
     {
@@ -39,17 +46,37 @@
         await base.OnAfterRenderAsync(firstRender);
     }
 
+    // ################################## PRIVATE #################
+
+    private async Task LoadPeople()
+    {
+        var people = this.dbServices.GetPeople();
+        if (people.Count == 0)
+        {
+            var testPerson = new Person()
+                {
+                    Name = "Tadej",
+                    Surname = "Mašić",
+                    BirthPlace = "Brežice",
+                    Birthdate = new DateTime(1993, 2, 7),
+                    LocationX = 500,
+                    LocationY = 500,
+                    Profession = "Software Engineer"
+                };
+
+            People = new List<Person>();
+            People.Add(testPerson);
+            dbServices.AddPerson(testPerson);
+        }
+        else
+        {
+            People = people.ToList();
+        }
+    }
+
     private Task AddNewPerson()
     {
-        var newPerson = new Person()
-            {
-                Name = "Mateja",
-                Surname = "Jalovec",
-                Birthdate = new DateTime(1998, 6, 1),
-                Id = Guid.NewGuid(),
-                Profession = "Medicine sister"
-            };
-        People.Add(newPerson);
+        navigation.NavigateTo("/addPerson");
 
         return Task.CompletedTask;
     }

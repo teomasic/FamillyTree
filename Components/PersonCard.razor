@@ -1,11 +1,13 @@
 ﻿@using System.Diagnostics
 @rendermode InteractiveServer
 @inject IJSRuntime JS
+@inject DbServices dbServices
 
-<div class="card" id="@Person?.Id" style="@CardStyle"
+<div class="card" id="@Person?.ID" style="@CardStyle"
      @onmousedown="startMovingPersonCard"
      @onmousemove="movePersonCard"
-     @onmouseup="stopMovingPersonCard">
+     @onmouseup="stopMovingPersonCard"
+     @onmouseout="stopMovingPersonCard">
     <div class="card-header">
         <i class="bi bi-person-circle"></i>
     </div>
@@ -21,12 +23,8 @@
 
 
     [Parameter]
-    public Person? Person { get; set; } = new Person();
+    public Person Person { get; set; } = new Person();
 
-    public double CardX { get; set; } = 500;
-    public double CardY { get; set; } = 100;
-    public int CardWidth { get; set; }
-    public int CardHeight { get; set; }
     public string CardStyle { get; set; } = "";
 
     public PersonCard()
@@ -38,13 +36,16 @@
     private bool canMove { get; set; }
     private IJSObjectReference? personCardJsModule;
 
+
+
     protected async override Task OnInitializedAsync()
     {
+
         styleListTemplate = new List<string>(){
             "position: absolute;",
             "font-size: 1rem;",
             "width: 5rem;",
-            $"top:{CardY}px; left:{CardX}px;"
+            $"top:{Person.LocationY}px; left:{Person.LocationX}px;"
         };
         CardStyle = ListToLongString(styleListTemplate);
 
@@ -81,12 +82,12 @@
 
     private void movePersonCard(MouseEventArgs e)
     {
-        if(canMove == true)
+        if (canMove == true)
         {
-            this.CardX += e.MovementX;
-            this.CardY += e.MovementY;
+            this.Person.LocationX += Convert.ToInt32(e.MovementX);
+            this.Person.LocationY += Convert.ToInt32(e.MovementY);
             this.styleListTemplate.RemoveAt(styleListTemplate.Count - 1);
-            this.styleListTemplate.Add($"top:{this.CardY}px; left:{this.CardX}px;");
+            this.styleListTemplate.Add($"top:{this.Person.LocationY}px; left:{this.Person.LocationX}px;");
             CardStyle = ListToLongString(styleListTemplate);
             InvokeAsync(StateHasChanged);
         }
@@ -94,6 +95,11 @@
 
     private void stopMovingPersonCard(MouseEventArgs e)
     {
+        if (canMove == true)
+        {
+            dbServices.UpdatePerson(this.Person);
+        }
         canMove = false;
+
     }
 }

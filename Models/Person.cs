@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FamillyTree.Models
 {
@@ -8,7 +7,7 @@ namespace FamillyTree.Models
         private int _age;
 
 
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid ID { get; set; }
         public string Name { get; set; }
         public string Surname { get; set; }
         public int Age
@@ -25,12 +24,15 @@ namespace FamillyTree.Models
 
         [DataType(DataType.Date)]
         public DateTime Birthdate { get; set; }
-        public string BirthPlace { get; set; }
+        public string BirthPlace { get; set; } = String.Empty;
 
-        public string LifeEvents { get; set; }
-        public string Profession { get; set; }
+        public string LifeEvents { get; set; } = String.Empty;
+        public string Profession { get; set; } = String.Empty;
 
         public DateTime DateOfDeath { get; set; }
-        public string PlaceOfDeath { get; set; }
+        public string PlaceOfDeath { get; set; } = String.Empty;
+
+        public int LocationX { get; set; }
+        public int LocationY { get; set; }
     }
 }

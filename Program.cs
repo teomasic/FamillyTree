@@ -1,10 +1,23 @@
 using FamillyTree.Components;
+using FamillyTree.Data;
+using FamillyTree.Services;
+using Microsoft.EntityFrameworkCore;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 var builder = WebApplication.CreateBuilder(args);
-
+var conf = builder.Configuration;
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddDbContext<AppDbContext>(opt =>
+{
+    opt.UseSqlite($"Data Source={nameof(AppDbContext)}.db")
+        .EnableSensitiveDataLogging()
+        .EnableDetailedErrors();
+});
+
+builder.Services.AddScoped<DbServices>();
 
 var app = builder.Build();
 
