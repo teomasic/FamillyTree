@@ -13,6 +13,7 @@ class Home {
 
 
 
+
     constructor() {
         this.registerMouseEvent();
     }
