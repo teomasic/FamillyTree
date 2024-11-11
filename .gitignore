@@ -370,3 +370,4 @@ FodyWeavers.xsd
 /wwwroot/app.css
 *.map
 /Components/Pages/**.js
+/Components/Pages/**.js.map
