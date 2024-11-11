@@ -368,3 +368,4 @@ FodyWeavers.xsd
 *.db-*
 /AppDbContext.db
 /wwwroot/app.css
+/Components/**/*.js
