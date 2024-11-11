@@ -12,6 +12,7 @@ class Home {
     tree_content: HTMLDivElement;
 
 
+
     constructor() {
         this.registerMouseEvent();
     }

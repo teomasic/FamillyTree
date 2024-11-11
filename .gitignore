@@ -367,7 +367,5 @@ FodyWeavers.xsd
 *.db
 *.db-*
 /AppDbContext.db
-/wwwroot/app.css
-*.map
-/Components/Pages/**.js
-/Components/Pages/**.js.map
+/Components/Pages/*.js
+/Components/Pages/*.js.map
