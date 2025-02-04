@@ -5,16 +5,7 @@
 
 <PageTitle>Familly Tree App</PageTitle>
 
-
-@foreach (var person in People)
-{
-    <PersonCard Person="@person"></PersonCard>
-}
-
-
-<button class="btn btn-lg btn-outline-primary bi bi-plus-circle right_corner"
-        @onclick="AddNewPerson">
-</button>
+<div id="scene_div" style="width:100%; height: 300px;"></div>
 
 @code {
 
@@ -28,7 +19,8 @@
         People = new List<Person>();
     }
 
-    private IJSObjectReference? homeJsModule;
+    // private IJSObjectReference? homeJsModule;
+    public Lazy<Task<IJSObjectReference>> homeJs_moduleTask;
 
     protected async override Task OnInitializedAsync()
     {
@@ -40,7 +32,9 @@
     {
         if (firstRender)
         {
-            homeJsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Pages/Home.razor.js");
+            homeJs_moduleTask = new(() => JS.InvokeAsync<IJSObjectReference>("import", "./home.js").AsTask());
+            var homeJs = await homeJs_moduleTask.Value;
+            _ = homeJs.InvokeVoidAsync("Init");
         }
 
         await base.OnAfterRenderAsync(firstRender);

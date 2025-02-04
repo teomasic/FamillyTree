@@ -6,7 +6,7 @@
     "removeComments": false,
     "sourceMap": true,
     "target": "ES6",
-    "outDir": "Components/Pages/"
+    "outDir": "wwwroot"
   },
   "include": [
     "scripts/**/*"

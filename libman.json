@@ -1,0 +1,10 @@
+{
+  "version": "3.0",
+  "defaultProvider": "cdnjs",
+  "libraries": [
+    {
+      "library": "three.js@0.172.0",
+      "destination": "scripts/three.js/"
+    }
+  ]
+}
