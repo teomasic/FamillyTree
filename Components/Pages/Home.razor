@@ -2,15 +2,13 @@
 @rendermode InteractiveServer
 @inject IJSRuntime JS
 @inject NavigationManager navigation
+@inject DbServices dbServices
 
 <PageTitle>Familly Tree App</PageTitle>
 
-<div id="scene_div" style="width:100%; height: 300px;"></div>
+<div id="scene_div" style="width:100%; height: 500px;"></div>
 
 @code {
-
-    [Inject]
-    public DbServices dbServices { get; set; }
 
     public List<Person> People { get; set; }
 
@@ -19,7 +17,6 @@
         People = new List<Person>();
     }
 
-    // private IJSObjectReference? homeJsModule;
     public Lazy<Task<IJSObjectReference>> homeJs_moduleTask;
 
     protected async override Task OnInitializedAsync()
@@ -32,9 +29,15 @@
     {
         if (firstRender)
         {
+            var dotnetRef = DotNetObjectReference.Create(this);
+
             homeJs_moduleTask = new(() => JS.InvokeAsync<IJSObjectReference>("import", "./home.js").AsTask());
             var homeJs = await homeJs_moduleTask.Value;
-            _ = homeJs.InvokeVoidAsync("Init");
+            var res = await homeJs.InvokeAsync<bool>("Init", dotnetRef);
+            if (res)
+            {
+                _ = homeJs.InvokeAsync<bool>("InitFamillyMembers", People);
+            }
         }
 
         await base.OnAfterRenderAsync(firstRender);
