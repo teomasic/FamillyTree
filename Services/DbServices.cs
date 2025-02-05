@@ -43,14 +43,18 @@ namespace FamillyTree.Services
             }
 
         }
-        public async void DeletePerson(Person person)
+        public async Task<bool> DeletePerson(Guid id)
         {
-            var personToDelete = db.FamillyMembers.FirstOrDefault(x => x.ID == person.ID);
+            var result = false;
+            var personToDelete = db.FamillyMembers.FirstOrDefault(x => x.ID == id);
             if(personToDelete != null)
             {
                 db.FamillyMembers.Remove(personToDelete);
-                await db.SaveChangesAsync();
+                var remove_result = await db.SaveChangesAsync();
+                result = remove_result > 0 ? true : false; 
             }
+
+            return result;
         }
     }
 }

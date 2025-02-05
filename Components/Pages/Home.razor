@@ -6,21 +6,16 @@
 
 <PageTitle>Familly Tree App</PageTitle>
 
-<div id="scene_div" style="width:100%; height: 500px;"></div>
+<div id="scene_div" class="m-0 p-0" style="width:100%; height: 700px;"></div>
 
 @code {
+    public List<Person> People { get; set; } = new List<Person>();
 
-    public List<Person> People { get; set; }
-
-    public Home()
-    {
-        People = new List<Person>();
-    }
-
-    public Lazy<Task<IJSObjectReference>> homeJs_moduleTask;
+    public Lazy<Task<IJSObjectReference>> homeJs_moduleTask = new ();
 
     protected async override Task OnInitializedAsync()
     {
+
         await LoadPeople();
         await base.OnInitializedAsync();
     }
@@ -56,8 +51,8 @@
                     Surname = "Mašić",
                     BirthPlace = "Brežice",
                     Birthdate = new DateTime(1993, 2, 7),
-                    LocationX = 500,
-                    LocationY = 500,
+                    LocationX = 10,
+                    LocationY = 10,
                     Profession = "Software Engineer"
                 };
 
@@ -69,6 +64,8 @@
         {
             People = people.ToList();
         }
+
+        await Task.CompletedTask;
     }
 
     private Task AddNewPerson()

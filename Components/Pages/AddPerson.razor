@@ -1,7 +1,82 @@
 ﻿@page "/addPerson"
+@inject ILogger<AddPerson> logger
+@inject DbServices dbServices
 
 <h3>AddPerson</h3>
 
-@code {
 
+
+<EditForm Model="NewPerson" OnSubmit="CreateNewPerson" FormName="NewPersonFrom">
+    <div class="container-fluid p-3 border border-2 border-dark">
+        <div class="form-group">
+            <label>Name:</label>
+            <InputText @bind-Value="NewPerson!.Name" class="form-control" placeholder="enter person's name'" />
+        </div>
+        <div class="form-group">
+            <label>Surname:</label>
+            <InputText @bind-Value="NewPerson!.Surname" class="form-control" placeholder="enter person's surname'" />
+        </div>
+        <div class="form-group">
+            <label>Profession:</label>
+            <InputText @bind-Value="NewPerson!.Profession" class="form-control" placeholder="enter person's job short description'" />
+        </div>
+        <div class="form-group">
+            <label>Birth Date:</label>
+            <InputDate @bind-Value="NewPerson!.Birthdate" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Birth Place:</label>
+            <InputText @bind-Value="NewPerson!.BirthPlace" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Life events:</label>
+            <InputTextArea @bind-Value="NewPerson!.LifeEvents" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Date Of Death</label>
+            <InputDate @bind-Value="NewPerson!.DateOfDeath" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Place Of Death</label>
+            <InputText @bind-Value="NewPerson!.PlaceOfDeath" class="form-control" />
+        </div>
+
+
+        <button type="submit" class="btn btn-primary mt-1">Submit</button>
+    </div>
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm]
+    public Person NewPerson { get; set; } = new Person();
+
+    private EditContext? editContext;
+
+
+    protected override Task OnInitializedAsync()
+    {
+        var date = DateTime.Now;
+        NewPerson.Birthdate = new DateTime(date.Year, date.Month, date.Day);
+
+        NewPerson.LocationX = 10;
+        NewPerson.LocationY = 10;
+
+        editContext = new(NewPerson);
+
+        return base.OnInitializedAsync();
+    }
+
+    private void CreateNewPerson()
+    {
+
+        if (editContext != null && editContext.Validate())
+        {
+            logger.LogInformation("New person form valid!");
+            dbServices.AddPerson(NewPerson);
+        }
+        else
+        {
+            logger.LogWarning("New person from NOT valid!");
+        }
+    }
 }

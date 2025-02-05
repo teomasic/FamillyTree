@@ -1,45 +1,78 @@
 ﻿@page "/removePerson"
+@inject DbServices dbServices
+@inject ILogger<RemovePerson> logger
+
+@rendermode InteractiveServer
 
 <h3>RemovePerson</h3>
- 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            @foreach (var prop in FamillyMembers.GetType().GetProperties())
-            {
-                <th scope="col">@prop.Name</th>
-            }
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var person in FamillyMembers)
-        {
-            <tr>
-                <th scope="row">@Counter</th>
-                <th>@person.Name</th>
-                <th>@person.Surname</th>
-            </tr>
 
-            Counter++;
-        }
-    </tbody>
-</table>
+@if (FamillyMembers.Count != 0)
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <td>#</td>
+                <td>Name</td>
+                <td>Surname</td>
+                <td>Dates</td>
+                <td>Action</td>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var person in FamillyMembers)
+            {
+                var birthDate = @person.Birthdate.ToString("dd-MM-yyyy");
+                var dateOfDeath = @person.DateOfDeath == DateTime.MinValue ? "*" : person.DateOfDeath.ToString("dd-MM-yyyy");
+                <tr>
+                    <th>@Counter</th>
+                    <th>@person.Name</th>
+                    <th>@person.Surname</th>
+                    <th>@birthDate - @dateOfDeath</th>
+                    <th><button class="btn btn-danger" @onclick="(args) => DeletePerson(args, person.ID)">Delete</button></th>
+                </tr>
+
+                Counter++;
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="bg-info">Loading ... </div>
+}
+
 
 @code {
 
-    public RemovePerson(DbServices dbServices)
-    {
-        this.dbServices = dbServices;
-    }
 
-    private readonly DbServices dbServices;
-    private List<Person> FamillyMembers { get; set; }
-    private int Counter { get; set; }             
+    private List<Person> FamillyMembers { get; set; } = new List<Person>();
+    private int Counter { get; set; }
 
 
     protected override Task OnInitializedAsync()
     {
-        dbServices.GetPeople();
+        FamillyMembers = dbServices.GetPeople().ToList();
         return base.OnInitializedAsync();
+    }
+
+
+    private async void DeletePerson(MouseEventArgs args, Guid id)
+    {
+        var personToDelete = FamillyMembers.Find(x => x.ID == id);
+        if (personToDelete != null)
+        {
+            var res = await dbServices.DeletePerson(id);
+            if (res == true)
+            {
+                logger.LogInformation($"Person '{personToDelete.Name}' removed!");
+                StateHasChanged();
+            }
+            else
+            {
+                logger.LogWarning($"Error removing person '{personToDelete.Name}'");
+            }
+
+
+        }
     }
 }

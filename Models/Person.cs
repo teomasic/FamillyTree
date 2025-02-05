@@ -8,8 +8,13 @@ namespace FamillyTree.Models
 
 
         public Guid ID { get; set; }
-        public string Name { get; set; }
-        public string Surname { get; set; }
+
+        [Required]
+        [MinLength(2, ErrorMessage = "Name can not be empty")]
+        public string Name { get; set; } = string.Empty;
+
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Surname can not be empty")]
+        public string Surname { get; set; } = string.Empty;
         public int Age
         {
             get
