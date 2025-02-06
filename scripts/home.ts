@@ -40,6 +40,8 @@ class Home {
 
     scene_div: HTMLDivElement;
 
+    zoom_move_coeficient = 1.02;
+
     // dotnet objects
     famillyMembers: models.Person[]
 
@@ -63,28 +65,11 @@ class Home {
     }
 
     registerMouseEvents = () => {
-        this.renderer.domElement.addEventListener("mousedown", (event) => {
+        this.mouseDown();
+        this.mouseUp();
+        this.mouseMove();
+        this.mouseWheel();
 
-            if (event.button === 0) { // left mouse click to move member 
-
-                this.canMoveMember = true;
-            }
-            else if (event.button === 2) {
-                this.canMoveMember = false;
-            }
-        });
-
-        this.renderer.domElement.addEventListener("mouseup", () => {
-            this.canMoveMember = false;
-            this.sendMemberPosition();
-        });
-
-        this.renderer.domElement.addEventListener("mousemove", (event) => {
-            if (this.canMoveMember) {
-
-                this.moveMember(event);
-            }
-        });
     }
 
 
@@ -93,8 +78,8 @@ class Home {
         // check if moving member
         let scene_member = this.checkIntersectedObjectIsMember(event.clientX, event.clientY);
         if (scene_member != undefined) {
-            scene_member.position.x += event.movementX * 0.2;
-            scene_member.position.y += -event.movementY * 0.2;
+            scene_member.position.x += event.movementX * 0.2 * this.zoom_move_coeficient;
+            scene_member.position.y += -event.movementY * 0.2 * this.zoom_move_coeficient;
 
             // hold member's x,y and send it to dotent on mouseup event
             let dotnet_member = this.famillyMembers.find(x => x.id == scene_member.dotnetId);
@@ -168,8 +153,48 @@ class Home {
         this.animate();
     }
 
+    // ########################################  JS EVENTS
+    private mouseDown = () => {
+        this.renderer.domElement.addEventListener("mousedown", (event) => {
 
-    // PUBLIC
+            if (event.button === 0) { // left mouse click to move member 
+
+                this.canMoveMember = true;
+            }
+            else if (event.button === 2) {
+                this.canMoveMember = false;
+            }
+        });
+
+    }
+
+    private mouseUp = () => {
+        this.renderer.domElement.addEventListener("mouseup", () => {
+            this.canMoveMember = false;
+            this.sendMemberPosition();
+        });
+    }
+
+    private mouseMove = () => {
+        this.renderer.domElement.addEventListener("mousemove", (event) => {
+            if (this.canMoveMember) {
+                this.moveMember(event);
+            }
+        });
+    }
+
+    private mouseWheel = () => {
+        this.renderer.domElement.addEventListener("wheel", (event) => {
+
+            console.log("mouseWheel", event);
+            
+            this.camera.zoom = event.deltaY < 0 ? this.camera.zoom * this.zoom_move_coeficient : this.camera.zoom / this.zoom_move_coeficient;
+            this.camera.updateProjectionMatrix();
+
+        }, { passive: true });
+    }
+
+    // ########################################  PUBLIC
 
     public AddFamillyMembersToScene = (famillyMembers: models.Person[]) => {
         this.famillyMembers = famillyMembers;
