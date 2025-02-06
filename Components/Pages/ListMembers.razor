@@ -1,10 +1,10 @@
-﻿@page "/removePerson"
+﻿@page "/listMembers"
 @inject DbServices dbServices
-@inject ILogger<RemovePerson> logger
+@inject ILogger<ListMembers> logger
 
 @rendermode InteractiveServer
 
-<h3>RemovePerson</h3>
+<h3>List of familly members</h3>
 
 @if (FamillyMembers.Count != 0)
 {
@@ -24,14 +24,13 @@
                 var birthDate = @person.Birthdate.ToString("dd-MM-yyyy");
                 var dateOfDeath = @person.DateOfDeath == DateTime.MinValue ? "*" : person.DateOfDeath.ToString("dd-MM-yyyy");
                 <tr>
-                    <th>@Counter</th>
+                    <th></th>
                     <th>@person.Name</th>
                     <th>@person.Surname</th>
                     <th>@birthDate - @dateOfDeath</th>
                     <th><button class="btn btn-danger" @onclick="(args) => DeletePerson(args, person.ID)">Delete</button></th>
                 </tr>
 
-                Counter++;
             }
         </tbody>
     </table>
@@ -46,7 +45,6 @@ else
 
 
     private List<Person> FamillyMembers { get; set; } = new List<Person>();
-    private int Counter { get; set; }
 
 
     protected override Task OnInitializedAsync()
@@ -65,7 +63,8 @@ else
             if (res == true)
             {
                 logger.LogInformation($"Person '{personToDelete.Name}' removed!");
-                StateHasChanged();
+                FamillyMembers.Remove(personToDelete);
+                await InvokeAsync(StateHasChanged);
             }
             else
             {

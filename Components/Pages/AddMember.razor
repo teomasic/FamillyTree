@@ -1,8 +1,11 @@
-﻿@page "/addPerson"
-@inject ILogger<AddPerson> logger
-@inject DbServices dbServices
+﻿@page "/addMember"
+@rendermode InteractiveServer
 
-<h3>AddPerson</h3>
+@inject ILogger<AddMember> logger
+@inject DbServices dbServices
+@inject NavigationManager navigation
+
+<h3>Add member</h3>
 
 
 
@@ -73,6 +76,15 @@
         {
             logger.LogInformation("New person form valid!");
             dbServices.AddPerson(NewPerson);
+            var redirectTo = "listMembers";
+            try
+            {
+                navigation.NavigateTo(redirectTo);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"Error navigtion to '{redirectTo}' || {ex.Message}");
+            }
         }
         else
         {

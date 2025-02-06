@@ -24,6 +24,9 @@ export function InitFamillyMembers(famillyMembers) {
 window.PrintSceneObjects = function () {
     home.PrintSceneObjects();
 };
+window.PrintDotnetObjects = function () {
+    home.PrintDotnetObjects();
+};
 class Home {
     constructor(dotnetRef) {
         this.animate = () => {
@@ -31,16 +34,48 @@ class Home {
         };
         this.registerMouseEvents = () => {
             this.renderer.domElement.addEventListener("mousedown", (event) => {
-                var closestObjFromSene = this.checkIntersectedObject(event.clientX, event.clientY);
-                if (event.button === 0) { // Left click for pan map
-                    console.log("move object");
+                if (event.button === 0) { // left mouse click to move member 
+                    this.canMoveMember = true;
                 }
-                else if (event.button === 2) { // Right click for rotate map
-                    console.log("rotate camera");
+                else if (event.button === 2) {
+                    this.canMoveMember = false;
+                }
+            });
+            this.renderer.domElement.addEventListener("mouseup", () => {
+                this.canMoveMember = false;
+                this.sendMemberPosition();
+            });
+            this.renderer.domElement.addEventListener("mousemove", (event) => {
+                if (this.canMoveMember) {
+                    this.moveMember(event);
                 }
             });
         };
-        this.checkIntersectedObject = (clientX, clientY) => {
+        this.moveMember = (event) => {
+            // check if moving member
+            let scene_member = this.checkIntersectedObjectIsMember(event.clientX, event.clientY);
+            if (scene_member != undefined) {
+                scene_member.position.x += event.movementX * 0.2;
+                scene_member.position.y += -event.movementY * 0.2;
+                // hold member's x,y and send it to dotent on mouseup event
+                let dotnet_member = this.famillyMembers.find(x => x.id == scene_member.dotnetId);
+                if (dotnet_member != undefined) {
+                    dotnet_member.locationX = scene_member.position.x;
+                    dotnet_member.locationY = scene_member.position.y;
+                    this.lastMemberX = Math.round(dotnet_member.locationX);
+                    this.lastMemberY = Math.round(dotnet_member.locationY);
+                    this.lastMemberId = dotnet_member.id;
+                }
+            }
+        };
+        this.sendMemberPosition = () => {
+            this.dotnetRef.invokeMethodAsync("SaveNewMembersCoords", this.lastMemberId, this.lastMemberX, this.lastMemberY);
+            this.lastMemberX = 0;
+            this.lastMemberY = 0;
+            this.lastMemberId = "";
+        };
+        this.checkIntersectedObjectIsMember = (clientX, clientY) => {
+            let member;
             let scene_div = Common.GetSceneDiv();
             this.raycaster = new THREE.Raycaster();
             var coords = new THREE.Vector2();
@@ -49,13 +84,17 @@ class Home {
             this.raycaster.setFromCamera(coords, this.camera);
             const intersections = this.raycaster.intersectObjects(this.scene.children);
             if (intersections.length > 0) {
-                let selectedObjFromScene = intersections[0].object; // could be amr, amr_pallet, amr_alarm_rect, amr_mode_rect
-                console.log("selectedObjOnMap: ", selectedObjFromScene);
-                console.log("intersections: ", intersections);
+                let selectedObjFromScene = intersections[0].object; // 
+                if (selectedObjFromScene.name.startsWith("member_")) {
+                    member = selectedObjFromScene;
+                }
             }
-            this.camera.updateProjectionMatrix();
+            return member;
         };
-        // PRIVATE
+        this.getSeletedMember = (event) => {
+            let member = this.checkIntersectedObjectIsMember(event.clientX, event.clientY);
+            return member == undefined ? "" : member.name;
+        };
         this.constructScene = () => {
             this.scene_div = document.getElementById("scene_div");
             this.width = this.scene_div.clientWidth;
@@ -73,27 +112,28 @@ class Home {
         };
         // PUBLIC
         this.AddFamillyMembersToScene = (famillyMembers) => {
-            console.log("AddFamillyMembersToScene", famillyMembers);
+            this.famillyMembers = famillyMembers;
             for (var i = 0; i <= famillyMembers.length - 1; i++) {
                 try {
                     let canvas = document.createElement("canvas");
                     let ctx = canvas.getContext("2d");
-                    let member = famillyMembers[i];
+                    let dotnet_member = famillyMembers[i];
                     canvas.width = famillyMembers[i].name.length * 20;
                     canvas.height = canvas.width / 2;
                     ctx.fillStyle = "black";
                     ctx.font = "18px Arial";
-                    ctx.fillText(member.name, canvas.width / 2, canvas.height / 2);
+                    ctx.fillText(dotnet_member.name, canvas.width / 2, canvas.height / 2);
                     let member_texture = new THREE.Texture(canvas);
                     member_texture.needsUpdate = true;
                     let member_material = new THREE.MeshBasicMaterial({ map: member_texture });
                     member_material.transparent = true;
                     const member_geometry = new THREE.PlaneGeometry(canvas.width / 4, canvas.height / 4);
-                    let member_name = new THREE.Mesh(member_geometry, member_material);
-                    member_name.position.set(member.locationX, member.locationY, 1);
-                    member_name.name = `member_${member.name}_${member.surname}`;
-                    member_name.visible = true;
-                    this.scene.add(member_name);
+                    let scene_member = new THREE.Mesh(member_geometry, member_material);
+                    scene_member.position.set(dotnet_member.locationX, dotnet_member.locationY, 1);
+                    scene_member.name = `member_${dotnet_member.name}_${dotnet_member.surname}`;
+                    scene_member.dotnetId = dotnet_member.id;
+                    scene_member.visible = true;
+                    this.scene.add(scene_member);
                 }
                 catch (e) {
                     console.log("error drawing member", e);
@@ -102,11 +142,14 @@ class Home {
         };
         // TEST
         this.PrintSceneObjects = () => {
-            this.scene.children.forEach((x) => {
-                console.log(x);
-            });
+            this.scene.children.forEach(x => console.log(x));
+        };
+        this.PrintDotnetObjects = () => {
+            this.famillyMembers.forEach(x => console.log(x));
         };
         try {
+            this.lastMemberX = 0;
+            this.lastMemberY = 0;
             this.dotnetRef = dotnetRef;
             this.constructScene();
             this.registerMouseEvents();
