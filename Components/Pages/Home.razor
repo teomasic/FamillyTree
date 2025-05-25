@@ -6,8 +6,9 @@
 @inject ILogger<Home> logger
 
 <PageTitle>Familly Tree App</PageTitle>
+<div id="scene_div" class="m-0 p-0" style="width:100%; height: 700px;" oncontextmenu="return false;"></div>
+<ToolBar></ToolBar>
 
-<div id="scene_div" class="m-0 p-0" style="width:100%; height: 700px;"></div>
 
 @code {
     public List<Person> FamillyMembers { get; set; } = new List<Person>();
