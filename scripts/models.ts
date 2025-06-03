@@ -18,7 +18,3 @@ export interface Person {
     locationX: number
     locationY: number
 }
-
-export interface ScenePerson extends Mesh {
-    dotnetMemberId: string
-}

@@ -33,7 +33,7 @@ class Home {
     renderer: any;
     raycaster: any
 
-    movingMember: models.ScenePerson
+    movingMember: THREE.Mesh
     canMoveMember: boolean
     canMoveMap: boolean
     lastMemberX: number
@@ -76,13 +76,12 @@ class Home {
     // ########################################  JS EVENTS
     private mouseDown = () => {
         this.renderer.domElement.addEventListener("mousedown", (event) => {
-            
+
             if (event.button === 0) { // left mouse click to move member
 
-                // set moving member
-                this.movingMember = this.setMovingMember(event);
-
-                this.canMoveMember = true;
+                // check for moving member
+                this.movingMember = this.checkIfMovingMember(event);
+                this.canMoveMember = this.movingMember != undefined ? true : false;
                 this.canMoveMap = false;
             }
             else if (event.button === 2) { // right mouse click to move map
@@ -120,7 +119,7 @@ class Home {
             this.camera.zoom = event.deltaY < 0 ? this.camera.zoom * this.zoom_move_coeficient : this.camera.zoom / this.zoom_move_coeficient;
             this.camera.updateProjectionMatrix();
 
-        }, { passive: true,  });
+        }, { passive: true, });
     }
 
 
@@ -132,42 +131,41 @@ class Home {
             this.movingMember.position.y += -event.movementY * 0.2 * this.zoom_move_coeficient;
 
             // hold member's x,y and send it to dotent on mouseup event
-            let dotnet_member = this.famillyMembers.find(x => x.id == this.movingMember.dotnetMemberId);
-                if (dotnet_member != undefined) {
-                    dotnet_member.locationX = this.movingMember.position.x;
-                    dotnet_member.locationY = this.movingMember.position.y;
+            let dotnet_member = this.famillyMembers.find(x => x.id == this.movingMember.name);
+            if (dotnet_member != undefined) {
+                dotnet_member.locationX = this.movingMember.position.x;
+                dotnet_member.locationY = this.movingMember.position.y;
 
-                    this.lastMemberX = Math.round(dotnet_member.locationX);
-                    this.lastMemberY = Math.round(dotnet_member.locationY);
-                    this.lastMemberId = dotnet_member.id;
-                }
+                this.lastMemberX = Math.round(dotnet_member.locationX);
+                this.lastMemberY = Math.round(dotnet_member.locationY);
+                this.lastMemberId = dotnet_member.id;
+            }
         }
     }
 
-    private moveMap = (event:MouseEvent) => {
+    private moveMap = (event: MouseEvent) => {
         event.preventDefault();
         this.camera.position.x += - event.movementX * 0.2 * this.zoom_move_coeficient;
         this.camera.position.y += event.movementY * 0.2 * this.zoom_move_coeficient;
-        
+
     }
 
-    private setMovingMember = (event: MouseEvent) => {
+    private checkIfMovingMember = (event: MouseEvent): THREE.Mesh => {
         // check if moving member
-        let scene_member = this.checkIntersectedObjectIsMember(event.clientX, event.clientY) as models.ScenePerson;
-        if (scene_member != undefined) {
-            return scene_member;
-        }
+        let scene_member = this.checkIntersectedObjectIsMember(event.clientX, event.clientY) as THREE.Mesh;
+        return scene_member;
     }
 
 
     // ########################### INVOKE DOTNET FUNCTIONS
 
     private sendMemberPosition = () => {
-
-        this.dotnetRef.invokeMethodAsync("SaveNewMembersCoords", this.lastMemberId, this.lastMemberX, this.lastMemberY);
-        this.lastMemberX = 0;
-        this.lastMemberY = 0;
-        this.lastMemberId = "";
+        if (this.lastMemberId != undefined) {
+            this.dotnetRef.invokeMethodAsync("SaveNewMembersCoords", this.lastMemberId, this.lastMemberX, this.lastMemberY);
+            this.lastMemberX = 0;
+            this.lastMemberY = 0;
+            this.lastMemberId = undefined;
+        }
     }
 
     // ############################## TOOLS
@@ -185,8 +183,9 @@ class Home {
         const intersections = this.raycaster.intersectObjects(this.scene.children);
         if (intersections.length > 0) {
 
-            let selectedObjFromScene = intersections[0].object; // 
-            if (selectedObjFromScene.name.startsWith("member_")) {
+            let selectedObjFromScene = intersections[0].object;
+            let found_member = this.famillyMembers.find(x => x.id == selectedObjFromScene.name);
+            if (found_member) {
                 member = selectedObjFromScene;
             }
 
@@ -247,8 +246,7 @@ class Home {
 
                 scene_member.position.set(dotnet_member.locationX, dotnet_member.locationY, 1);
 
-                scene_member.name = `member_${dotnet_member.name}_${dotnet_member.surname}`;
-                //scene_member.dotnetMemberId = dotnet_member.id;
+                scene_member.name = dotnet_member.id;
                 scene_member.visible = true;
                 this.scene.add(scene_member);
 
