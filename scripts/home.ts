@@ -1,6 +1,6 @@
-﻿import * as THREE from "./three.js/three.module.js";
-import * as models from "./models.js";
+﻿import * as models from "./models.js";
 import { Common } from "./Common.js";
+import * as THREE from "three";
 
 var home;
 
@@ -33,7 +33,9 @@ class Home {
     renderer: any;
     raycaster: any
 
+    movingMember: models.ScenePerson
     canMoveMember: boolean
+    canMoveMap: boolean
     lastMemberX: number
     lastMemberY: number
     lastMemberId: string
@@ -71,28 +73,94 @@ class Home {
         this.mouseWheel();
 
     }
+    // ########################################  JS EVENTS
+    private mouseDown = () => {
+        this.renderer.domElement.addEventListener("mousedown", (event) => {
+            
+            if (event.button === 0) { // left mouse click to move member
+
+                // set moving member
+                this.movingMember = this.setMovingMember(event);
+
+                this.canMoveMember = true;
+                this.canMoveMap = false;
+            }
+            else if (event.button === 2) { // right mouse click to move map
+                this.canMoveMember = false;
+                this.canMoveMap = true;
+            }
+        }, { passive: true });
+
+    }
+
+    private mouseUp = () => {
+        this.renderer.domElement.addEventListener("mouseup", () => {
+
+            this.movingMember = undefined;
+            this.canMoveMember = false;
+            this.canMoveMap = false;
+            this.sendMemberPosition();
+        });
+    }
+
+    private mouseMove = () => {
+        this.renderer.domElement.addEventListener("mousemove", (event) => {
+            if (this.canMoveMember) {
+                this.moveMember(event);
+            }
+            if (this.canMoveMap) {
+                this.moveMap(event);
+            }
+        });
+    }
+
+    private mouseWheel = () => {
+        this.renderer.domElement.addEventListener("wheel", (event) => {
+
+            this.camera.zoom = event.deltaY < 0 ? this.camera.zoom * this.zoom_move_coeficient : this.camera.zoom / this.zoom_move_coeficient;
+            this.camera.updateProjectionMatrix();
+
+        }, { passive: true,  });
+    }
 
 
-    private moveMember = (event) => {
+    private moveMember = (event: MouseEvent) => {
 
-        // check if moving member
-        let scene_member = this.checkIntersectedObjectIsMember(event.clientX, event.clientY);
-        if (scene_member != undefined) {
-            scene_member.position.x += event.movementX * 0.2 * this.zoom_move_coeficient;
-            scene_member.position.y += -event.movementY * 0.2 * this.zoom_move_coeficient;
+        //check if moving member
+        if (this.movingMember != undefined) {
+            this.movingMember.position.x += event.movementX * 0.2 * this.zoom_move_coeficient;
+            this.movingMember.position.y += -event.movementY * 0.2 * this.zoom_move_coeficient;
 
             // hold member's x,y and send it to dotent on mouseup event
-            let dotnet_member = this.famillyMembers.find(x => x.id == scene_member.dotnetId);
-            if (dotnet_member != undefined) {
-                dotnet_member.locationX = scene_member.position.x;
-                dotnet_member.locationY = scene_member.position.y;
+            let dotnet_member = this.famillyMembers.find(x => x.id == this.movingMember.dotnetMemberId);
+                if (dotnet_member != undefined) {
+                    dotnet_member.locationX = this.movingMember.position.x;
+                    dotnet_member.locationY = this.movingMember.position.y;
 
-                this.lastMemberX = Math.round(dotnet_member.locationX);
-                this.lastMemberY = Math.round(dotnet_member.locationY);
-                this.lastMemberId = dotnet_member.id;
-            }
+                    this.lastMemberX = Math.round(dotnet_member.locationX);
+                    this.lastMemberY = Math.round(dotnet_member.locationY);
+                    this.lastMemberId = dotnet_member.id;
+                }
         }
     }
+
+    private moveMap = (event:MouseEvent) => {
+        event.preventDefault();
+        this.camera.position.x += - event.movementX * 0.2 * this.zoom_move_coeficient;
+        this.camera.position.y += event.movementY * 0.2 * this.zoom_move_coeficient;
+        
+    }
+
+    private setMovingMember = (event: MouseEvent) => {
+        // check if moving member
+        let scene_member = this.checkIntersectedObjectIsMember(event.clientX, event.clientY) as models.ScenePerson;
+        if (scene_member != undefined) {
+            return scene_member;
+        }
+    }
+
+
+    // ########################### INVOKE DOTNET FUNCTIONS
 
     private sendMemberPosition = () => {
 
@@ -101,6 +169,8 @@ class Home {
         this.lastMemberY = 0;
         this.lastMemberId = "";
     }
+
+    // ############################## TOOLS
 
     private checkIntersectedObjectIsMember = (clientX: number, clientY: number): any => {
         let member;
@@ -123,11 +193,6 @@ class Home {
         }
 
         return member;
-    }
-
-    private getSeletedMember = (event): string => {
-        let member = this.checkIntersectedObjectIsMember(event.clientX, event.clientY);
-        return member == undefined ? "" : member.name;
     }
 
     private constructScene = () => {
@@ -153,46 +218,6 @@ class Home {
         this.animate();
     }
 
-    // ########################################  JS EVENTS
-    private mouseDown = () => {
-        this.renderer.domElement.addEventListener("mousedown", (event) => {
-
-            if (event.button === 0) { // left mouse click to move member 
-
-                this.canMoveMember = true;
-            }
-            else if (event.button === 2) {
-                this.canMoveMember = false;
-            }
-        });
-
-    }
-
-    private mouseUp = () => {
-        this.renderer.domElement.addEventListener("mouseup", () => {
-            this.canMoveMember = false;
-            this.sendMemberPosition();
-        });
-    }
-
-    private mouseMove = () => {
-        this.renderer.domElement.addEventListener("mousemove", (event) => {
-            if (this.canMoveMember) {
-                this.moveMember(event);
-            }
-        });
-    }
-
-    private mouseWheel = () => {
-        this.renderer.domElement.addEventListener("wheel", (event) => {
-
-            console.log("mouseWheel", event);
-            
-            this.camera.zoom = event.deltaY < 0 ? this.camera.zoom * this.zoom_move_coeficient : this.camera.zoom / this.zoom_move_coeficient;
-            this.camera.updateProjectionMatrix();
-
-        }, { passive: true });
-    }
 
     // ########################################  PUBLIC
 
@@ -223,7 +248,7 @@ class Home {
                 scene_member.position.set(dotnet_member.locationX, dotnet_member.locationY, 1);
 
                 scene_member.name = `member_${dotnet_member.name}_${dotnet_member.surname}`;
-                scene_member.dotnetId = dotnet_member.id;
+                //scene_member.dotnetMemberId = dotnet_member.id;
                 scene_member.visible = true;
                 this.scene.add(scene_member);
 

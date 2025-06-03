@@ -9,7 +9,7 @@
     "outDir": "wwwroot/js/"
   },
   "include": [
-    "scripts/**/*"
+    "scripts/*.ts"
   ],
   "exclude": [
     "node_modules",
