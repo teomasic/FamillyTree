@@ -28,7 +28,7 @@
         {
             var dotnetRef = DotNetObjectReference.Create(this);
 
-            homeJs_moduleTask = new(() => JS.InvokeAsync<IJSObjectReference>("import", "./home.js").AsTask());
+            homeJs_moduleTask = new(() => JS.InvokeAsync<IJSObjectReference>("import", "./js/home.js").AsTask());
             var homeJs = await homeJs_moduleTask.Value;
             var res = await homeJs.InvokeAsync<bool>("Init", dotnetRef);
             if (res)
