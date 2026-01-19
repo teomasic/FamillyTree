@@ -43,23 +43,11 @@ namespace FamillyTree.Services
             var personToUpdate = db.FamillyMembers.FirstOrDefault(x => x.ID == person.ID);
             if (personToUpdate != null)
             {
-                personToUpdate.Profession = person.Profession;
-                personToUpdate.Name = person.Name;
-                personToUpdate.Surname = person.Surname;
-                personToUpdate.BirthPlace = person.BirthPlace;
-                personToUpdate.Birthdate = person.Birthdate;
-                personToUpdate.PlaceOfDeath = person.PlaceOfDeath;
-                personToUpdate.DateOfDeath = person.DateOfDeath;
-                personToUpdate.LocationX = person.LocationX;
-                personToUpdate.LocationY = person.LocationY;
-
-                personToUpdate.LifeEvents = person.LifeEvents;
-
                 try
                 {
-                    db.Update(personToUpdate);
+                    db.Entry(personToUpdate).CurrentValues.SetValues(person);
                     await db.SaveChangesAsync();
-                    logger.LogInformation($"Person '{personToUpdate.Name} {personToUpdate.Surname}' updated successfully!");
+                    logger.LogInformation($"Person '{personToUpdate.Name} {personToUpdate.Surname}' coords updated successfully!");
                 }
                 catch (Exception ex)
                 {

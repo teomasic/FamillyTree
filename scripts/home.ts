@@ -8,10 +8,13 @@ export async function Init(dotnetRef: object) {
     home = new Home(dotnetRef);
     return true;
 }
-
 export async function InitFamillyMembers(famillyMembers: models.Person[]) {
     home.AddFamillyMembersToScene(famillyMembers);
 }
+export async function SetDrawingTool(toolName: string) {
+    home.SetDrawingTool(toolName);
+}
+
 
 window.PrintSceneObjects = function () {
     home.PrintSceneObjects();
@@ -26,12 +29,10 @@ class Home {
     // scene object
     width: number;
     height: number;
-    camera: any;
-    scene: any;
-    geometry: any;
-    material: any;
-    renderer: any;
-    raycaster: any
+    camera: THREE.PerspectiveCamera;
+    scene: THREE.Scene;
+    renderer: THREE.WebGLRenderer;
+    raycaster: THREE.Raycaster;
 
     movingMember: THREE.Mesh
     canMoveMember: boolean
@@ -41,11 +42,18 @@ class Home {
     lastMemberId: string
 
     scene_div: HTMLDivElement;
-
     zoom_move_coeficient = 1.02;
 
     // dotnet objects
     famillyMembers: models.Person[]
+    drawingTool: string;
+    drawingOn: boolean;
+
+    // draw line
+    canDraw: boolean;
+    line_buffer_geometry: THREE.BufferGeometry;
+    line_material: THREE.LineBasicMaterial;
+    line_points_for_buffer: THREE.Vector2[];
 
     constructor(dotnetRef: object) {
         try {
@@ -56,6 +64,9 @@ class Home {
             this.constructScene();
             this.registerMouseEvents();
 
+            this.line_buffer_geometry = new THREE.BufferGeometry();
+            this.line_material = new THREE.LineBasicMaterial({ color: 0x0000ff });
+            this.line_points_for_buffer = new Array as THREE.Vector2[];
 
         } catch (e) {
             console.log("Error: ", e);
@@ -79,14 +90,23 @@ class Home {
 
             if (event.button === 0) { // left mouse click to move member
 
+                if (this.drawingOn) {
+                    this.canDraw = true;
+                    this.canMoveMap = false;
+                    this.canMoveMember = false;
+                    return;
+                }
+
                 // check for moving member
                 this.movingMember = this.checkIfMovingMember(event);
                 this.canMoveMember = this.movingMember != undefined ? true : false;
                 this.canMoveMap = false;
+                this.canDraw = false;
             }
             else if (event.button === 2) { // right mouse click to move map
                 this.canMoveMember = false;
                 this.canMoveMap = true;
+                this.canDraw = false;
             }
         }, { passive: true });
 
@@ -95,15 +115,26 @@ class Home {
     private mouseUp = () => {
         this.renderer.domElement.addEventListener("mouseup", () => {
 
+            if (this.canMoveMember) {
+                this.sendMemberPosition();
+            }
+            if (this.canDraw) {
+                this.drawLineOnScene();
+            }
+
             this.movingMember = undefined;
             this.canMoveMember = false;
             this.canMoveMap = false;
-            this.sendMemberPosition();
+            this.canDraw = false;
         });
     }
 
     private mouseMove = () => {
         this.renderer.domElement.addEventListener("mousemove", (event) => {
+            if (this.canDraw) {
+                console.log("addLineToBufferScene");
+                this.addLineToBufferScene(event);
+            }
             if (this.canMoveMember) {
                 this.moveMember(event);
             }
@@ -154,6 +185,17 @@ class Home {
         // check if moving member
         let scene_member = this.checkIntersectedObjectIsMember(event.clientX, event.clientY) as THREE.Mesh;
         return scene_member;
+    }
+
+    private drawLineOnScene() {
+        // line drawing
+        let geometry = this.line_buffer_geometry.setFromPoints(this.line_points_for_buffer);
+        const line = new THREE.Line(geometry, this.line_material);
+        this.scene.add(line);
+    }
+    private addLineToBufferScene(event: MouseEvent) {
+        // line drawing
+        this.line_points_for_buffer.push(new THREE.Vector2(event.clientX, event.clientY));
     }
 
 
@@ -255,6 +297,17 @@ class Home {
             }
 
         }
+    }
+
+    public SetDrawingTool = (toolName: string) => {
+        if (toolName == "") {
+            this.drawingOn = false;
+            this.drawingTool = "";
+            return;
+        }
+
+        this.drawingOn = true;
+        this.drawingTool = toolName;
     }
 
 

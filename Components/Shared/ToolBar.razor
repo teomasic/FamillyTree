@@ -1,0 +1,53 @@
+﻿@using FamillyTree.Components.Pages
+@rendermode InteractiveServer
+
+
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-2">
+
+    <span class="navbar-brand">Tools</span>
+    <div class="dropup-center dropup">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDarkDropdown" aria-controls="navbarNavDarkDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDarkDropdown">
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <button class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        Draw
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark">
+                        <li><span class="dropdown-item" @onclick='(e) => SelectDrawTool(e, "")'>None</span></li>
+                        @foreach (var tool in drawingTools)
+                        {
+                            var selectedToolCss = tool == selectedDrawingTool ? "bg bg-success" : "";
+                            <li><span class="dropdown-item @selectedToolCss" @onclick='(e) => SelectDrawTool(e, tool)'>@tool</span></li>
+                        }
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
+@code {
+    [CascadingParameter]
+    public Home HomeComponent { get; set; } = new();
+
+    public ToolBar()
+    {
+        drawingTools = new[] { "Eraser", "Pencil", "Line" };
+        selectedDrawingTool = string.Empty;
+    }
+
+    private string[] drawingTools { get; set; }
+    private string selectedDrawingTool { get; set; }
+
+    private void SelectDrawTool(MouseEventArgs args, string toolName)
+    {
+        selectedDrawingTool = toolName;
+        _ = HomeComponent.SetDrawingTool(toolName);
+        InvokeAsync(StateHasChanged);
+    }
+}

@@ -3,6 +3,7 @@ using System;
 using FamillyTree.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FamillyTree.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250607163534_new field to person")]
+    partial class newfieldtoperson
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
@@ -37,26 +40,10 @@ namespace FamillyTree.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Cousins")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<DateTime>("DateOfDeath")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Dauthers")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<Guid>("Father")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Grandmas")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Grandpas")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("Husband")
@@ -84,10 +71,6 @@ namespace FamillyTree.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Profession")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Sons")
                         .IsRequired()
                         .HasColumnType("TEXT");
 

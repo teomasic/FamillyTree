@@ -1,0 +1,95 @@
+﻿@page "/setMemberRelations"
+@inject DbServices dbServices
+@inject ILogger<ListMembers> logger
+
+@rendermode InteractiveServer
+
+<h3>SetMemberRelations</h3>
+<label for="memberToEdit">Member: </label>
+<InputSelect class="form-select" @bind-Value="MemberIdToEdit">
+    @foreach (var member in FamillyMembers)
+    {
+        <option value="@member.ID">@member.Name @member.Surname</option>
+    }
+</InputSelect>
+<label>is</label>
+<InputSelect class="form-select" @bind-Value="Relation">
+    @foreach (var r in Enum.GetValues(typeof(RelativeEnum)))
+    {
+        <option value="@r">@r</option>
+    }
+
+</InputSelect>
+<label>to</label>
+<InputSelect class="form-select" @bind-Value="RelativeMemberId">
+    @foreach (var member in FamillyMembers)
+    {
+        <option value="@member.ID">@member.Name @member.Surname</option>
+    }
+</InputSelect>
+
+<button class="btn btn-primary" @onclick="Save">Save</button>
+
+@code {
+    private List<Person> FamillyMembers { get; set; } = new();
+    private Guid MemberIdToEdit { get; set; } = Guid.Empty;
+    private Guid RelativeMemberId { get; set; } = Guid.Empty;
+    private RelativeEnum Relation { get; set; } = new();
+
+    protected override Task OnInitializedAsync()
+    {
+        FamillyMembers = dbServices.GetPeople().ToList();
+        return base.OnInitializedAsync();
+    }
+
+    private void Save(MouseEventArgs args)
+    {
+
+        var memberToEdit = FamillyMembers.Find(x => x.ID == MemberIdToEdit);
+        var relativeMember = FamillyMembers.Find(x => x.ID == RelativeMemberId);
+        if(memberToEdit == null || relativeMember == null)
+        {
+            return;   
+        }
+        switch (Relation)
+        {
+            case RelativeEnum.Mother:
+                memberToEdit.Mother = RelativeMemberId;
+                break;
+            case RelativeEnum.Father:
+                memberToEdit.Father = RelativeMemberId;
+                break;
+            case RelativeEnum.Son:
+                memberToEdit.Sons.Add(RelativeMemberId);
+                break;
+            case RelativeEnum.Dauther:
+                memberToEdit.Dauthers.Add(RelativeMemberId);
+                break;
+            case RelativeEnum.Sister:
+            case RelativeEnum.Brother:
+                memberToEdit.BrothersAndSisters.Add(RelativeMemberId);
+                break;
+            case RelativeEnum.Cousin:
+                memberToEdit.Cousins.Add(RelativeMemberId);
+                break;
+            case RelativeEnum.Grandma:
+                memberToEdit.Grandmas.Add(RelativeMemberId);
+                break;
+            case RelativeEnum.Grandpa:
+                memberToEdit.Grandpas.Add(RelativeMemberId);
+                break;
+            case RelativeEnum.Wife:
+                memberToEdit.Wife = RelativeMemberId;
+                break;
+            case RelativeEnum.Husband:
+                memberToEdit.Wife = RelativeMemberId;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(Relation), $"Not expected relative value {Relation}");
+        }
+
+        // save to db
+        _ = dbServices.UpdatePerson(memberToEdit);
+
+    }
+}

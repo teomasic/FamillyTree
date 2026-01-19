@@ -39,5 +39,17 @@ namespace FamillyTree.Models
 
         public int LocationX { get; set; }
         public int LocationY { get; set; }
+
+        public Guid Mother { get; set; }
+        public Guid Father { get; set; }
+        public List<Guid> BrothersAndSisters { get; set; } = new List<Guid>();
+        public Guid Wife { get; set; }
+        public Guid Husband { get; set; }
+        public List<Guid> Sons { get; set; }
+        public List<Guid> Dauthers { get; set; }
+        public List<Guid> Cousins { get; set; } = new List<Guid>();
+        public List<Guid> Grandmas { get; set; } = new List<Guid>();
+        public List<Guid> Grandpas { get; set; } = new List<Guid>();
+
     }
 }

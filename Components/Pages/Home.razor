@@ -6,14 +6,23 @@
 @inject ILogger<Home> logger
 
 <PageTitle>Familly Tree App</PageTitle>
-<div id="scene_div" class="m-0 p-0" style="width:100%; height: 700px;" oncontextmenu="return false;"></div>
-<ToolBar></ToolBar>
+<CascadingValue Value="this">
+    <div id="scene_div" class="m-0 p-0" style="width:100%; height: 700px;" oncontextmenu="return false;"></div>
+    <ToolBar></ToolBar>
+</CascadingValue>
+
 
 
 @code {
     public List<Person> FamillyMembers { get; set; } = new List<Person>();
-
     public Lazy<Task<IJSObjectReference>> homeJs_moduleTask = new();
+
+    public Home()
+    {
+
+    }
+
+    private string drawingTool = string.Empty;
 
     protected async override Task OnInitializedAsync()
     {
@@ -79,6 +88,18 @@
 
 
     // ################################## PUBLIC #################
+
+    public async Task SetDrawingTool(string toolName)
+    {
+        drawingTool = toolName;
+        // set on JS side
+        var homeJs = await homeJs_moduleTask.Value;
+        await homeJs.InvokeVoidAsync("SetDrawingTool", toolName);
+    }
+
+
+
+
     [JSInvokable]
     public async void SaveNewMembersCoords(string id, int x, int y)
     {
