@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "build": "vite build"
+    "build": "vite build",
+    "watch": "npm run watch"
   },
   "devDependencies": {
     "@types/three": "^0.176.0",

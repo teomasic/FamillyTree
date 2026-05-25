@@ -1,5 +1,5 @@
 ﻿import * as models from "./models.js";
-import { Common } from "./Common.js";
+import { Common } from "./common.js";
 import * as THREE from "three";
 
 var home;
@@ -279,6 +279,7 @@ class Home {
                 ctx.fillStyle = "black";
                 ctx.font = "18px Arial";
                 ctx.fillText(dotnet_member.name, canvas.width / 2, canvas.height / 2);
+
                 let member_texture = new THREE.Texture(canvas);
                 member_texture.needsUpdate = true;
                 let member_material = new THREE.MeshBasicMaterial({ map: member_texture });
@@ -290,6 +291,7 @@ class Home {
 
                 scene_member.name = dotnet_member.id;
                 scene_member.visible = true;
+                
                 this.scene.add(scene_member);
 
             } catch (e) {
